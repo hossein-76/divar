@@ -141,6 +141,8 @@ class AttributeChoiceValue(models.Model):
 
 class Attribute(models.Model):
     name = models.CharField(max_length=100)
+    type_attribute = models.CharField(max_length=100, choices=(("numeric", "numeric"), ("value", "value")),
+                                      default="value")
 
 
 class Category(models.Model):
