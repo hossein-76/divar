@@ -4,6 +4,9 @@ from django.db import models
 class City(models.Model):
     name = models.CharField(max_length=255)
 
+    def __str__(self):
+        return self.name
+
 
 class Vicinity(models.Model):
     name = models.CharField(max_length=255)
@@ -50,11 +53,11 @@ class CVMapper(models.Model):
 
 # category product mapper
 class CPMapper(models.Model):
-    city = models.ForeignKey("City", on_delete=models.CASCADE)
-    vicinities = models.ManyToManyField("Vicinity")
+    category = models.ForeignKey("Category", on_delete=models.CASCADE)
+    products = models.ManyToManyField("Product")
 
 
 # Vicinity Product mapper
 class VPMapper(models.Model):
-    city = models.ForeignKey("City", on_delete=models.CASCADE)
-    vicinities = models.ManyToManyField("Vicinity")
+    vicinity = models.ForeignKey("Vicinity", unique=True, on_delete=models.CASCADE)
+    products = models.ManyToManyField("Product")
