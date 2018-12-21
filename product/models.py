@@ -192,6 +192,9 @@ class Category(models.Model):
     def save(self, *args, **kwargs):
         super(Category, self).save(*args, **kwargs)
         CPMapper.objects.get_or_create(category=self)
+        a = AppManager.objects.all()[0]
+        a.categories.add(self)
+        a.save()
 
     def get_products(self):
         cmap = CPMapper.objects.get(category=self)
@@ -205,11 +208,17 @@ class Category(models.Model):
         return None
 
     def add_product(self, product):
-        cp = CPMapper.objects.get(category=self)
         if not isinstance(product, Product):
             raise Exception
+        cp = CPMapper.objects.get(category=self)
         cp.add_product(product)
         cp.save()
+        parent = self.parent
+        while parent:
+            cp = CPMapper.objects.get(category=parent)
+            cp.add_product(product)
+            cp.save()
+            parent = parent.get_parent()
 
     def delete(self, *args, **kwargs):
         cmap = CPMapper.objects.get(category=self)
