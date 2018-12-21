@@ -78,7 +78,10 @@ DATABASES = {
         'NAME': "divar",
         "HOST": "localhost",
         "USERNAME": "hossein",
-        "PASSWORD": "abcd@1234"
+        "PASSWORD": "abcd@1234",
+        "TEST": {
+            "NAME": "divar_test"
+        }
     }
 }
 

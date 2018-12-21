@@ -2,6 +2,26 @@ from django.db import models
 from django_mysql.models import JSONField
 
 
+class AppManager(models.Model):
+    cities = models.ManyToManyField("City")
+    categories = models.ManyToManyField("Category")
+
+    def search(self, city, vicinity=None, product=None, category=None):
+        city = self.cities.get(name=city)
+        vicinity = city.get_vicinitiy(vicinity)
+        cat = self.categories.get(name=category)
+        if not city:
+            return None
+        q = city.get_products()
+        if vicinity:
+            q = q & vicinity.get_products()
+        if cat:
+            q = q & cat.get_products()
+        if product:
+            q = q & Product.objects.filter(name__icontains=product)
+        return q
+
+
 # mappers
 
 # city vicinity mapper
@@ -81,10 +101,20 @@ class City(models.Model):
     def save(self, *args, **kwargs):
         super(City, self).save(*args, **kwargs)
         CVMapper.objects.get_object_or_create(city=self)
+        a = AppManager.objects.get(pk=1)
+        a.city.add(self)
+        a.save()
 
     def get_vicinities(self):
         cmap = CVMapper.objects.get(city=self)
         return cmap.get_vicinities()
+
+    def get_vicinity(self, vicinity):
+        cm = self.get_vicinities()
+        for i in cm:
+            if i.name == vicinity:
+                return vicinity
+        return None
 
     def get_products(self):
         vics = self.get_vicinities()
@@ -107,6 +137,13 @@ class Vicinity(models.Model):
     def get_products(self):
         cmap = VPMapper.objects.get(vicinity=self)
         return cmap.get_products()
+
+    def get_product(self, product):
+        cm = self.get_products()
+        for i in cm:
+            if i.name == product:
+                return i
+        return None
 
     def add_product(self, product):
         cmap = VPMapper.objects.get(vicinity=self)
@@ -153,9 +190,16 @@ class Category(models.Model):
         super(Category, self).save(*args, **kwargs)
         CPMapper.objects.get_or_create(category=self)
 
-    def get_product(self):
+    def get_products(self):
         cmap = CPMapper.objects.get(category=self)
         return cmap.get_products()
+
+    def get_product(self, product):
+        cmap = CPMapper.objects.get(category=self)
+        for i in cmap:
+            if i == product:
+                return i
+        return None
 
     def add_product(self, product):
         cp = CPMapper.objects.get_or_create(category=self)
