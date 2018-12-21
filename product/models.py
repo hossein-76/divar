@@ -3,8 +3,8 @@ from django_mysql.models import JSONField
 
 
 class AppManager(models.Model):
-    cities = models.ManyToManyField("City")
-    categories = models.ManyToManyField("Category")
+    cities = models.ManyToManyField("City", blank=True)
+    categories = models.ManyToManyField("Category", blank=True)
 
     def search(self, city, vicinity=None, product=None, category=None):
         city = self.cities.get(name=city)
@@ -27,7 +27,7 @@ class AppManager(models.Model):
 # city vicinity mapper
 class CVMapper(models.Model):
     city = models.ForeignKey("City", on_delete=models.CASCADE)
-    vicinities = models.ManyToManyField("Vicinity")
+    vicinities = models.ManyToManyField("Vicinity", blank=True)
 
     def add_vicinity(self, vic):
         if not isinstance(vic, Vicinity):
@@ -47,7 +47,7 @@ class CVMapper(models.Model):
 # category product mapper
 class CPMapper(models.Model):
     category = models.ForeignKey("Category", on_delete=models.CASCADE)
-    products = models.ManyToManyField("Product")
+    products = models.ManyToManyField("Product", blank=True)
 
     def add_product(self, product):
         if not isinstance(product, Product):
@@ -69,7 +69,7 @@ class CPMapper(models.Model):
 # Vicinity Product mapper
 class VPMapper(models.Model):
     vicinity = models.ForeignKey("Vicinity", unique=True, on_delete=models.CASCADE)
-    products = models.ManyToManyField("Product")
+    products = models.ManyToManyField("Product", blank=True)
 
     # void
     def add_product(self, product):
@@ -100,9 +100,9 @@ class City(models.Model):
 
     def save(self, *args, **kwargs):
         super(City, self).save(*args, **kwargs)
-        CVMapper.objects.get_object_or_create(city=self)
-        a = AppManager.objects.get(pk=1)
-        a.city.add(self)
+        CVMapper.objects.get_or_create(city=self)
+        a = AppManager.objects.all()[0]
+        a.cities.add(self)
         a.save()
 
     def get_vicinities(self):
@@ -131,7 +131,10 @@ class Vicinity(models.Model):
     def save(self, *args, **kwargs):
         super(Vicinity, self).save(*args, **kwargs)
         VPMapper.objects.get_or_create(vicinity=self)
-        cv = CVMapper.objects.get_object_or_create(city=self.city)
+        try:
+            cv = CVMapper.objects.get(city=self.city)
+        except:
+            raise Exception
         cv.add_vicinity(vic=self)
 
     def get_products(self):
@@ -169,7 +172,7 @@ class Vicinity(models.Model):
 
 class ProductImage(models.Model):
     image = models.ImageField(upload_to="product")
-    alt = models.CharField(max_length=30)
+    alt = models.CharField(max_length=30, blank=True, null=True)
 
 
 class AttributeChoiceValue(models.Model):
@@ -184,7 +187,7 @@ class Attribute(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
-    parent = models.ForeignKey('self', related_name="childs", on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', related_name="childs", on_delete=models.CASCADE, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         super(Category, self).save(*args, **kwargs)
@@ -202,7 +205,7 @@ class Category(models.Model):
         return None
 
     def add_product(self, product):
-        cp = CPMapper.objects.get_or_create(category=self)
+        cp = CPMapper.objects.get(category=self)
         if not isinstance(product, Product):
             raise Exception
         cp.add_product(product)
@@ -228,9 +231,9 @@ class Product(models.Model):
     description = models.TextField(null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     price = models.FloatField()
-    image = models.ManyToManyField(ProductImage)
+    image = models.ManyToManyField(ProductImage, blank=True)
     vicinity = models.ForeignKey(Vicinity, on_delete=models.CASCADE)
-    attributes = JSONField(default=dict)
+    attributes = JSONField(default=dict, blank=True, null=True)
     creation_time = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
