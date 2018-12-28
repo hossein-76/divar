@@ -74,7 +74,7 @@ WSGI_APPLICATION = 'divar.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': "divar",
         "HOST": "localhost",
         "USERNAME": "hossein",
