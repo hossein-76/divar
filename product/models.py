@@ -143,7 +143,7 @@ class City(models.Model):
         return cmap.get_vicinities()
 
     def get_vicinity(self, vicinity):
-        if isinstance(vicinity,Vicinity):
+        if isinstance(vicinity, Vicinity):
             cm = self.get_vicinities()
             for i in cm:
                 if i == vicinity:
