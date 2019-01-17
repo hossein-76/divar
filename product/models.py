@@ -298,6 +298,9 @@ class Product(models.Model):
         self.vicinity.delete_product(self)
         super(Product, self).delete(*args, **kwargs)
 
+    def suggestion(self):
+        products = self.category.get_products()[10]
+        return products
 
 class Report(models.Model):
     user = models.ForeignKey("account.User", on_delete=models.DO_NOTHING)
