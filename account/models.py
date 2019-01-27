@@ -21,8 +21,3 @@ class User(AbstractUser):
             raise Exception
         self.wish_list.remove(product)
 
-    def login(self, request):
-        user_login(request, self)
-
-    def logout(self, request):
-        user_logout(request)

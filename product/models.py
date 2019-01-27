@@ -302,15 +302,17 @@ class Product(models.Model):
         products = self.category.get_products()[10]
         return products
 
+
 class Report(models.Model):
     user = models.ForeignKey("account.User", on_delete=models.DO_NOTHING)
     product = models.ForeignKey(Product, on_delete=models.DO_NOTHING)
     reason = models.CharField(max_length=255, choices=(("inappropriate content", "inappropriate content"),
-                                                       ("spam content", "spam content")))
-    detail = models.TextField()
+                                                       ("spam content", "spam content")),
+                              default="inappropriate content")
+    detail = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=255, choices=(("approved", "approved"),
                                                        ("rejected", "rejected"),
-                                                       ("pending", "pending")))
+                                                       ("pending", "pending")), default="pending")
 
     def __str__(self):
         return "product:{}---user:{}".format(self.product.name, self.user.username)
